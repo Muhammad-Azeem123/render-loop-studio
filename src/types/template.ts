@@ -8,6 +8,7 @@ export interface Placeholder {
   color: string;
   width?: number;  // For image placeholders
   height?: number; // For image placeholders
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none'; // For image placeholders
 }
 
 export interface TemplateData {

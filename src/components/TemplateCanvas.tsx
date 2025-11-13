@@ -144,10 +144,11 @@ export const TemplateCanvas = ({
                   <img
                     src={imageUrl as string}
                     alt={placeholder.name}
-                    className="object-cover rounded"
+                    className="rounded"
                     style={{
                       width: `${placeholder.width || 150}px`,
                       height: `${placeholder.height || 150}px`,
+                      objectFit: placeholder.objectFit || 'cover',
                     }}
                   />
                 ) : (
@@ -273,6 +274,21 @@ const PlaceholderEditor = ({ placeholder, onUpdate, onDelete }: PlaceholderEdito
                 value={placeholder.height || 150}
                 onChange={(e) => onUpdate({ height: parseInt(e.target.value) })}
               />
+            </div>
+
+            <div className="space-y-2 col-span-2">
+              <Label htmlFor="objectFit">Image Fit</Label>
+              <select
+                id="objectFit"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value={placeholder.objectFit || 'cover'}
+                onChange={(e) => onUpdate({ objectFit: e.target.value as Placeholder['objectFit'] })}
+              >
+                <option value="cover">Cover (fill and crop)</option>
+                <option value="contain">Contain (fit inside)</option>
+                <option value="fill">Fill (stretch)</option>
+                <option value="none">None (original size)</option>
+              </select>
             </div>
           </>
         )}
