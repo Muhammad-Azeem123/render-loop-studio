@@ -4,7 +4,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { DataIteration, Placeholder } from '@/types/template';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Upload } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface DataManagerProps {
   placeholders: Placeholder[];
@@ -52,6 +53,15 @@ export const DataManager = ({
 
   const deleteIteration = (id: string) => {
     onIterationsChange(iterations.filter((iter) => iter.id !== id));
+  };
+
+  const handleImageUpload = (iterationId: string, placeholderId: string, file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      updateIterationValue(iterationId, placeholderId, event.target?.result as string);
+      toast.success('Image uploaded');
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -103,13 +113,44 @@ export const DataManager = ({
                 {placeholders.map((placeholder) => (
                   <div key={placeholder.id} className="space-y-1">
                     <Label className="text-xs">{placeholder.name}</Label>
-                    <Input
-                      value={iteration.values[placeholder.id] || ''}
-                      onChange={(e) =>
-                        updateIterationValue(iteration.id, placeholder.id, e.target.value)
-                      }
-                      placeholder={`Enter ${placeholder.type}`}
-                    />
+                    {placeholder.type === 'image' ? (
+                      <div className="space-y-2">
+                        {iteration.values[placeholder.id] && (
+                          <img
+                            src={iteration.values[placeholder.id] as string}
+                            alt={placeholder.name}
+                            className="w-full h-24 object-cover rounded border"
+                          />
+                        )}
+                        <Label
+                          htmlFor={`img-${iteration.id}-${placeholder.id}`}
+                          className="cursor-pointer"
+                        >
+                          <div className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload Image
+                          </div>
+                        </Label>
+                        <Input
+                          id={`img-${iteration.id}-${placeholder.id}`}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(iteration.id, placeholder.id, file);
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <Input
+                        value={iteration.values[placeholder.id] || ''}
+                        onChange={(e) =>
+                          updateIterationValue(iteration.id, placeholder.id, e.target.value)
+                        }
+                        placeholder={`Enter ${placeholder.type}`}
+                      />
+                    )}
                   </div>
                 ))}
               </div>

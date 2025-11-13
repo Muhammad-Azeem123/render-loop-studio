@@ -1,11 +1,13 @@
 export interface Placeholder {
   id: string;
   name: string;
-  type: 'text' | 'price' | 'category';
+  type: 'text' | 'price' | 'category' | 'image';
   x: number;
   y: number;
   fontSize: number;
   color: string;
+  width?: number;  // For image placeholders
+  height?: number; // For image placeholders
 }
 
 export interface TemplateData {

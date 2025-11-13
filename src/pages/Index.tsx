@@ -20,6 +20,8 @@ const Index = () => {
     const newPlaceholder: Placeholder = {
       ...placeholder,
       id: crypto.randomUUID(),
+      width: placeholder.type === 'image' ? 150 : undefined,
+      height: placeholder.type === 'image' ? 150 : undefined,
     };
     setPlaceholders([...placeholders, newPlaceholder]);
     toast.success('Placeholder added');
