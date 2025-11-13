@@ -5,6 +5,7 @@ import { DataIteration, Placeholder } from '@/types/template';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const Preview = () => {
   const [searchParams] = useSearchParams();
@@ -17,18 +18,32 @@ const Preview = () => {
   } | null>(null);
 
   useEffect(() => {
-    const data = searchParams.get('data');
-    if (data) {
-      try {
-        const decoded = JSON.parse(decodeURIComponent(data));
-        setTemplateData(decoded);
-      } catch (error) {
-        console.error('Failed to parse template data:', error);
-        toast.error('Invalid preview link');
+    const fetchTemplate = async () => {
+      const id = searchParams.get('id');
+      if (!id) {
+        toast.error('No template ID found');
+        return;
       }
-    } else {
-      toast.error('No template data found');
-    }
+
+      try {
+        const { data, error } = await supabase
+          .from('shared_templates')
+          .select('template_data')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+
+        if (data?.template_data) {
+          setTemplateData(data.template_data as any);
+        }
+      } catch (error) {
+        console.error('Failed to load template:', error);
+        toast.error('Failed to load preview');
+      }
+    };
+
+    fetchTemplate();
   }, [searchParams]);
 
   if (!templateData) {
