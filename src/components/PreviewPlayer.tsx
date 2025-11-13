@@ -5,6 +5,7 @@ import { TemplateCanvas } from './TemplateCanvas';
 import { DataIteration, Placeholder } from '@/types/template';
 import { Play, Pause, SkipBack, SkipForward, Maximize, Link2, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PreviewPlayerProps {
   backgroundImage?: string;
@@ -69,7 +70,7 @@ export const PreviewPlayer = ({
     }
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     const templateData = {
       backgroundImage,
       backgroundVideo,
@@ -77,16 +78,25 @@ export const PreviewPlayer = ({
       iterations,
     };
     
-    const encoded = encodeURIComponent(JSON.stringify(templateData));
-    const shareUrl = `${window.location.origin}/preview?data=${encoded}`;
-    
-    navigator.clipboard.writeText(shareUrl).then(() => {
+    try {
+      const { data, error } = await supabase
+        .from('shared_templates')
+        .insert([{ template_data: templateData as any }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      const shareUrl = `${window.location.origin}/preview?id=${data.id}`;
+      
+      await navigator.clipboard.writeText(shareUrl);
       setLinkCopied(true);
       toast.success('Preview link copied to clipboard!');
       setTimeout(() => setLinkCopied(false), 2000);
-    }).catch(() => {
-      toast.error('Failed to copy link');
-    });
+    } catch (error) {
+      console.error('Failed to create share link:', error);
+      toast.error('Failed to create share link');
+    }
   };
 
   const currentData = iterations[currentIndex]?.values;
