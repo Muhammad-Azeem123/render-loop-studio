@@ -1,14 +1,14 @@
 export interface Placeholder {
   id: string;
   name: string;
-  type: 'text' | 'price' | 'category' | 'image';
+  type: 'text' | 'price' | 'category' | 'image' | 'video';
   x: number;
   y: number;
   fontSize: number;
   color: string;
-  width?: number;  // For image placeholders
-  height?: number; // For image placeholders
-  objectFit?: 'cover' | 'contain' | 'fill' | 'none'; // For image placeholders
+  width?: number;  // For image/video placeholders
+  height?: number; // For image/video placeholders
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none'; // For image/video placeholders
 }
 
 export interface TemplateData {

@@ -114,8 +114,8 @@ export const TemplateCanvas = ({
             ? String(currentData[placeholder.id])
             : placeholder.name;
           
-          const isImagePlaceholder = placeholder.type === 'image';
-          const imageUrl = currentData?.[placeholder.id];
+          const isMediaPlaceholder = placeholder.type === 'image' || placeholder.type === 'video';
+          const mediaUrl = currentData?.[placeholder.id];
 
           return (
             <div
@@ -127,9 +127,9 @@ export const TemplateCanvas = ({
               style={{
                 left: `${placeholder.x}%`,
                 top: `${placeholder.y}%`,
-                fontSize: isImagePlaceholder ? undefined : `${placeholder.fontSize}px`,
-                color: isImagePlaceholder ? undefined : placeholder.color,
-                fontWeight: isImagePlaceholder ? undefined : 600,
+                fontSize: isMediaPlaceholder ? undefined : `${placeholder.fontSize}px`,
+                color: isMediaPlaceholder ? undefined : placeholder.color,
+                fontWeight: isMediaPlaceholder ? undefined : 600,
               }}
               onMouseDown={(e) => handlePlaceholderDrag(placeholder.id, e)}
               onClick={(e) => {
@@ -139,18 +139,34 @@ export const TemplateCanvas = ({
                 }
               }}
             >
-              {isImagePlaceholder ? (
-                imageUrl ? (
-                  <img
-                    src={imageUrl as string}
-                    alt={placeholder.name}
-                    className="rounded"
-                    style={{
-                      width: `${placeholder.width || 150}px`,
-                      height: `${placeholder.height || 150}px`,
-                      objectFit: placeholder.objectFit || 'cover',
-                    }}
-                  />
+              {isMediaPlaceholder ? (
+                mediaUrl ? (
+                  placeholder.type === 'image' ? (
+                    <img
+                      src={mediaUrl as string}
+                      alt={placeholder.name}
+                      className="rounded"
+                      style={{
+                        width: `${placeholder.width || 150}px`,
+                        height: `${placeholder.height || 150}px`,
+                        objectFit: placeholder.objectFit || 'cover',
+                      }}
+                    />
+                  ) : (
+                    <video
+                      src={mediaUrl as string}
+                      className="rounded"
+                      style={{
+                        width: `${placeholder.width || 150}px`,
+                        height: `${placeholder.height || 150}px`,
+                        objectFit: placeholder.objectFit || 'cover',
+                      }}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    />
+                  )
                 ) : (
                   <div
                     className="border-2 border-dashed border-muted-foreground/50 rounded flex items-center justify-center bg-muted/30"
@@ -196,7 +212,7 @@ interface PlaceholderEditorProps {
 }
 
 const PlaceholderEditor = ({ placeholder, onUpdate, onDelete }: PlaceholderEditorProps) => {
-  const isImage = placeholder.type === 'image';
+  const isMedia = placeholder.type === 'image' || placeholder.type === 'video';
   
   return (
     <Card className="p-4 space-y-4">
@@ -229,10 +245,11 @@ const PlaceholderEditor = ({ placeholder, onUpdate, onDelete }: PlaceholderEdito
             <option value="price">Price</option>
             <option value="category">Category</option>
             <option value="image">Image</option>
+            <option value="video">Video</option>
           </select>
         </div>
 
-        {!isImage ? (
+        {!isMedia ? (
           <>
             <div className="space-y-2">
               <Label htmlFor="fontSize">Font Size</Label>
