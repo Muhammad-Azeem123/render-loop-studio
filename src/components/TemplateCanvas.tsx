@@ -109,33 +109,64 @@ export const TemplateCanvas = ({
             }}
           />
         )}
-        {placeholders.map((placeholder) => (
-          <div
-            key={placeholder.id}
-            data-placeholder="true"
-            className={`absolute transform -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded ${
-              !isPreview ? 'cursor-move hover:ring-2 hover:ring-primary' : ''
-            } ${selectedId === placeholder.id && !isDragging ? 'ring-2 ring-primary' : ''}`}
-            style={{
-              left: `${placeholder.x}%`,
-              top: `${placeholder.y}%`,
-              fontSize: `${placeholder.fontSize}px`,
-              color: placeholder.color,
-              fontWeight: 600,
-            }}
-            onMouseDown={(e) => handlePlaceholderDrag(placeholder.id, e)}
-            onClick={(e) => {
-              if (!isPreview) {
-                e.stopPropagation();
-                setSelectedId(placeholder.id);
-              }
-            }}
-          >
-            {currentData && currentData[placeholder.id] !== undefined
-              ? String(currentData[placeholder.id])
-              : placeholder.name}
-          </div>
-        ))}
+        {placeholders.map((placeholder) => {
+          const displayValue = currentData && currentData[placeholder.id] !== undefined
+            ? String(currentData[placeholder.id])
+            : placeholder.name;
+          
+          const isImagePlaceholder = placeholder.type === 'image';
+          const imageUrl = currentData?.[placeholder.id];
+
+          return (
+            <div
+              key={placeholder.id}
+              data-placeholder="true"
+              className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${
+                !isPreview ? 'cursor-move hover:ring-2 hover:ring-primary' : ''
+              } ${selectedId === placeholder.id && !isDragging ? 'ring-2 ring-primary' : ''}`}
+              style={{
+                left: `${placeholder.x}%`,
+                top: `${placeholder.y}%`,
+                fontSize: isImagePlaceholder ? undefined : `${placeholder.fontSize}px`,
+                color: isImagePlaceholder ? undefined : placeholder.color,
+                fontWeight: isImagePlaceholder ? undefined : 600,
+              }}
+              onMouseDown={(e) => handlePlaceholderDrag(placeholder.id, e)}
+              onClick={(e) => {
+                if (!isPreview) {
+                  e.stopPropagation();
+                  setSelectedId(placeholder.id);
+                }
+              }}
+            >
+              {isImagePlaceholder ? (
+                imageUrl ? (
+                  <img
+                    src={imageUrl as string}
+                    alt={placeholder.name}
+                    className="object-cover rounded"
+                    style={{
+                      width: `${placeholder.width || 150}px`,
+                      height: `${placeholder.height || 150}px`,
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="border-2 border-dashed border-muted-foreground/50 rounded flex items-center justify-center bg-muted/30"
+                    style={{
+                      width: `${placeholder.width || 150}px`,
+                      height: `${placeholder.height || 150}px`,
+                    }}
+                  >
+                    <span className="text-xs text-muted-foreground">{placeholder.name}</span>
+                  </div>
+                )
+              ) : (
+                <span className="px-2 py-1 rounded">{displayValue}</span>
+              )}
+            </div>
+          );
+        })}
         {!isPreview && placeholders.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
             Click anywhere to add a placeholder
@@ -164,6 +195,8 @@ interface PlaceholderEditorProps {
 }
 
 const PlaceholderEditor = ({ placeholder, onUpdate, onDelete }: PlaceholderEditorProps) => {
+  const isImage = placeholder.type === 'image';
+  
   return (
     <Card className="p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -194,28 +227,55 @@ const PlaceholderEditor = ({ placeholder, onUpdate, onDelete }: PlaceholderEdito
             <option value="text">Text</option>
             <option value="price">Price</option>
             <option value="category">Category</option>
+            <option value="image">Image</option>
           </select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="fontSize">Font Size</Label>
-          <Input
-            id="fontSize"
-            type="number"
-            value={placeholder.fontSize}
-            onChange={(e) => onUpdate({ fontSize: parseInt(e.target.value) })}
-          />
-        </div>
+        {!isImage ? (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="fontSize">Font Size</Label>
+              <Input
+                id="fontSize"
+                type="number"
+                value={placeholder.fontSize}
+                onChange={(e) => onUpdate({ fontSize: parseInt(e.target.value) })}
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="color">Color</Label>
-          <Input
-            id="color"
-            type="color"
-            value={placeholder.color}
-            onChange={(e) => onUpdate({ color: e.target.value })}
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="color">Color</Label>
+              <Input
+                id="color"
+                type="color"
+                value={placeholder.color}
+                onChange={(e) => onUpdate({ color: e.target.value })}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="width">Width (px)</Label>
+              <Input
+                id="width"
+                type="number"
+                value={placeholder.width || 150}
+                onChange={(e) => onUpdate({ width: parseInt(e.target.value) })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="height">Height (px)</Label>
+              <Input
+                id="height"
+                type="number"
+                value={placeholder.height || 150}
+                onChange={(e) => onUpdate({ height: parseInt(e.target.value) })}
+              />
+            </div>
+          </>
+        )}
       </div>
     </Card>
   );
