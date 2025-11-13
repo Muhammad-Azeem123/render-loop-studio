@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { TemplateCanvas } from './TemplateCanvas';
 import { DataIteration, Placeholder } from '@/types/template';
-import { Play, Pause, SkipBack, SkipForward } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Maximize, Link2, Check } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PreviewPlayerProps {
   backgroundImage?: string;
@@ -20,6 +21,8 @@ export const PreviewPlayer = ({
 }: PreviewPlayerProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isPlaying || iterations.length === 0) return;
@@ -53,11 +56,74 @@ export const PreviewPlayer = ({
     setCurrentIndex((prev) => (prev - 1 + iterations.length) % iterations.length);
   };
 
+  const handleFullscreen = () => {
+    if (!containerRef.current) return;
+    
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      containerRef.current.requestFullscreen().catch(err => {
+        toast.error('Failed to enter fullscreen mode');
+        console.error(err);
+      });
+    }
+  };
+
+  const handleCopyLink = () => {
+    const templateData = {
+      backgroundImage,
+      backgroundVideo,
+      placeholders,
+      iterations,
+    };
+    
+    const encoded = encodeURIComponent(JSON.stringify(templateData));
+    const shareUrl = `${window.location.origin}/preview?data=${encoded}`;
+    
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setLinkCopied(true);
+      toast.success('Preview link copied to clipboard!');
+      setTimeout(() => setLinkCopied(false), 2000);
+    }).catch(() => {
+      toast.error('Failed to copy link');
+    });
+  };
+
   const currentData = iterations[currentIndex]?.values;
 
   return (
-    <Card className="p-6 space-y-4">
-      <h2 className="text-xl font-semibold">Preview</h2>
+    <Card className="p-6 space-y-4" ref={containerRef}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Preview</h2>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopyLink}
+            disabled={iterations.length === 0 || placeholders.length === 0}
+          >
+            {linkCopied ? (
+              <>
+                <Check className="h-4 w-4 mr-2" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Link2 className="h-4 w-4 mr-2" />
+                Share Link
+              </>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleFullscreen}
+          >
+            <Maximize className="h-4 w-4 mr-2" />
+            Fullscreen
+          </Button>
+        </div>
+      </div>
 
       <TemplateCanvas
         backgroundImage={backgroundImage}
