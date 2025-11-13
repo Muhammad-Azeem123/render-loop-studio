@@ -14,6 +14,7 @@ const Index = () => {
   const [placeholders, setPlaceholders] = useState<Placeholder[]>([]);
   const [iterations, setIterations] = useState<DataIteration[]>([]);
   const [backgroundImage, setBackgroundImage] = useState<string>();
+  const [backgroundVideo, setBackgroundVideo] = useState<string>();
 
   const handlePlaceholderAdd = (placeholder: Omit<Placeholder, 'id'>) => {
     const newPlaceholder: Placeholder = {
@@ -42,13 +43,23 @@ const Index = () => {
     toast.success('Placeholder deleted');
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setBackgroundImage(event.target?.result as string);
-        toast.success('Background image uploaded');
+        const result = event.target?.result as string;
+        
+        // Check if it's a video
+        if (file.type.startsWith('video/')) {
+          setBackgroundVideo(result);
+          setBackgroundImage(undefined);
+          toast.success('Background video uploaded');
+        } else {
+          setBackgroundImage(result);
+          setBackgroundVideo(undefined);
+          toast.success('Background image uploaded');
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -82,21 +93,22 @@ const Index = () => {
                   <Label htmlFor="bg-upload" className="cursor-pointer">
                     <div className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload Background
+                      Upload Media
                     </div>
                   </Label>
                   <Input
                     id="bg-upload"
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     className="hidden"
-                    onChange={handleImageUpload}
+                    onChange={handleMediaUpload}
                   />
                 </div>
               </div>
 
               <TemplateCanvas
                 backgroundImage={backgroundImage}
+                backgroundVideo={backgroundVideo}
                 placeholders={placeholders}
                 onPlaceholderAdd={handlePlaceholderAdd}
                 onPlaceholderUpdate={handlePlaceholderUpdate}
@@ -114,6 +126,7 @@ const Index = () => {
           <div className="lg:sticky lg:top-8 h-fit">
             <PreviewPlayer
               backgroundImage={backgroundImage}
+              backgroundVideo={backgroundVideo}
               placeholders={placeholders}
               iterations={iterations}
             />
