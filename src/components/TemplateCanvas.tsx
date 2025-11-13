@@ -31,20 +31,25 @@ export const TemplateCanvas = ({
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isPreview) return;
-    if (e.target === canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    // Allow clicking anywhere in the canvas, but not on placeholders
+    const isPlaceholder = (e.target as HTMLElement).hasAttribute('data-placeholder');
+    if (isPlaceholder) return;
 
-      onPlaceholderAdd({
-        name: `Placeholder ${placeholders.length + 1}`,
-        type: 'text',
-        x,
-        y,
-        fontSize: 24,
-        color: '#000000',
-      });
-    }
+    if (!canvasRef.current) return;
+    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    onPlaceholderAdd({
+      name: `Placeholder ${placeholders.length + 1}`,
+      type: 'text',
+      x,
+      y,
+      fontSize: 24,
+      color: '#000000',
+    });
   };
 
   const handlePlaceholderDrag = (id: string, e: React.MouseEvent) => {
@@ -90,7 +95,8 @@ export const TemplateCanvas = ({
         {placeholders.map((placeholder) => (
           <div
             key={placeholder.id}
-            className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${
+            data-placeholder="true"
+            className={`absolute transform -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded ${
               !isPreview ? 'cursor-move hover:ring-2 hover:ring-primary' : ''
             } ${selectedId === placeholder.id && !isDragging ? 'ring-2 ring-primary' : ''}`}
             style={{
