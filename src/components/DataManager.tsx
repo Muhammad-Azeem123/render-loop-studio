@@ -55,24 +55,29 @@ export const DataManager = ({
     onIterationsChange(iterations.filter((iter) => iter.id !== id));
   };
 
-  const handleImageUpload = (iterationId: string, placeholderId: string, file: File) => {
-    console.log('Starting image upload...', { iterationId, placeholderId, fileName: file.name });
+  const handleMediaUpload = (iterationId: string, placeholderId: string, file: File, type: 'image' | 'video') => {
+    console.log('Starting media upload...', { iterationId, placeholderId, fileName: file.name, type });
     
-    if (!file.type.startsWith('image/')) {
+    if (type === 'image' && !file.type.startsWith('image/')) {
       toast.error('Please select an image file');
+      return;
+    }
+    
+    if (type === 'video' && !file.type.startsWith('video/')) {
+      toast.error('Please select a video file');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = event.target?.result as string;
-      console.log('Image loaded, updating iteration...');
+      console.log('Media loaded, updating iteration...');
       updateIterationValue(iterationId, placeholderId, result);
       toast.success(`${file.name} uploaded successfully`);
     };
     reader.onerror = () => {
       console.error('Error reading file');
-      toast.error('Failed to upload image');
+      toast.error(`Failed to upload ${type}`);
     };
     reader.readAsDataURL(file);
   };
@@ -133,15 +138,23 @@ export const DataManager = ({
                 {placeholders.map((placeholder) => (
                   <div key={placeholder.id} className="space-y-2">
                     <Label className="text-sm font-medium">{placeholder.name} ({placeholder.type})</Label>
-                    {placeholder.type === 'image' ? (
+                    {(placeholder.type === 'image' || placeholder.type === 'video') ? (
                       <div className="space-y-2">
                         {iteration.values[placeholder.id] && (
                           <div className="relative">
-                            <img
-                              src={iteration.values[placeholder.id] as string}
-                              alt={placeholder.name}
-                              className="w-full h-32 object-cover rounded-lg border-2 border-border"
-                            />
+                            {placeholder.type === 'image' ? (
+                              <img
+                                src={iteration.values[placeholder.id] as string}
+                                alt={placeholder.name}
+                                className="w-full h-32 object-cover rounded-lg border-2 border-border"
+                              />
+                            ) : (
+                              <video
+                                src={iteration.values[placeholder.id] as string}
+                                className="w-full h-32 object-cover rounded-lg border-2 border-border"
+                                controls
+                              />
+                            )}
                             <Button
                               variant="destructive"
                               size="sm"
@@ -153,24 +166,26 @@ export const DataManager = ({
                           </div>
                         )}
                         <Label
-                          htmlFor={`img-${iteration.id}-${placeholder.id}`}
+                          htmlFor={`media-${iteration.id}-${placeholder.id}`}
                           className="cursor-pointer block"
                         >
                           <div className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-input bg-background px-4 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground hover:border-primary transition-colors">
                             <Upload className="h-5 w-5" />
-                            {iteration.values[placeholder.id] ? 'Change Image' : 'Upload Image'}
+                            {iteration.values[placeholder.id] 
+                              ? `Change ${placeholder.type === 'image' ? 'Image' : 'Video'}` 
+                              : `Upload ${placeholder.type === 'image' ? 'Image' : 'Video'}`}
                           </div>
                         </Label>
                         <Input
-                          id={`img-${iteration.id}-${placeholder.id}`}
+                          id={`media-${iteration.id}-${placeholder.id}`}
                           type="file"
-                          accept="image/*"
+                          accept={placeholder.type === 'image' ? 'image/*' : 'video/*'}
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) {
-                              console.log('Image file selected:', file.name);
-                              handleImageUpload(iteration.id, placeholder.id, file);
+                            if (file && (placeholder.type === 'image' || placeholder.type === 'video')) {
+                              console.log(`${placeholder.type} file selected:`, file.name);
+                              handleMediaUpload(iteration.id, placeholder.id, file, placeholder.type);
                             }
                           }}
                         />
