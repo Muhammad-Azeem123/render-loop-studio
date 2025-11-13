@@ -4,10 +4,11 @@ import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Trash2, Edit2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 interface TemplateCanvasProps {
   backgroundImage?: string;
+  backgroundVideo?: string;
   placeholders: Placeholder[];
   onPlaceholderAdd: (placeholder: Omit<Placeholder, 'id'>) => void;
   onPlaceholderUpdate: (id: string, updates: Partial<Placeholder>) => void;
@@ -18,6 +19,7 @@ interface TemplateCanvasProps {
 
 export const TemplateCanvas = ({
   backgroundImage,
+  backgroundVideo,
   placeholders,
   onPlaceholderAdd,
   onPlaceholderUpdate,
@@ -86,12 +88,27 @@ export const TemplateCanvas = ({
         ref={canvasRef}
         className="relative w-full aspect-video bg-muted overflow-hidden cursor-crosshair"
         onClick={handleCanvasClick}
-        style={{
-          backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
       >
+        {backgroundVideo && (
+          <video
+            src={backgroundVideo}
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            autoPlay
+            loop
+            muted
+            playsInline
+          />
+        )}
+        {!backgroundVideo && backgroundImage && (
+          <div
+            className="absolute inset-0 w-full h-full"
+            style={{
+              backgroundImage: `url(${backgroundImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          />
+        )}
         {placeholders.map((placeholder) => (
           <div
             key={placeholder.id}

@@ -24,11 +24,23 @@ export const DataManager = ({
         acc[p.id] = '';
         return acc;
       }, {} as Record<string, string | number>),
+      duration: 2000, // default 2 seconds
     };
     onIterationsChange([...iterations, newIteration]);
   };
 
-  const updateIteration = (id: string, placeholderId: string, value: string) => {
+  const updateIteration = (
+    id: string,
+    updates: Partial<DataIteration>
+  ) => {
+    onIterationsChange(
+      iterations.map((iter) =>
+        iter.id === id ? { ...iter, ...updates } : iter
+      )
+    );
+  };
+
+  const updateIterationValue = (id: string, placeholderId: string, value: string) => {
     onIterationsChange(
       iterations.map((iter) =>
         iter.id === id
@@ -71,6 +83,22 @@ export const DataManager = ({
                 </Button>
               </div>
 
+              <div className="space-y-2">
+                <Label className="text-xs">Display Duration (seconds)</Label>
+                <Input
+                  type="number"
+                  min="0.5"
+                  step="0.5"
+                  value={iteration.duration / 1000}
+                  onChange={(e) =>
+                    updateIteration(iteration.id, {
+                      duration: parseFloat(e.target.value) * 1000,
+                    })
+                  }
+                  className="w-32"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 {placeholders.map((placeholder) => (
                   <div key={placeholder.id} className="space-y-1">
@@ -78,7 +106,7 @@ export const DataManager = ({
                     <Input
                       value={iteration.values[placeholder.id] || ''}
                       onChange={(e) =>
-                        updateIteration(iteration.id, placeholder.id, e.target.value)
+                        updateIterationValue(iteration.id, placeholder.id, e.target.value)
                       }
                       placeholder={`Enter ${placeholder.type}`}
                     />

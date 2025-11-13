@@ -7,12 +7,14 @@ import { Play, Pause, SkipBack, SkipForward } from 'lucide-react';
 
 interface PreviewPlayerProps {
   backgroundImage?: string;
+  backgroundVideo?: string;
   placeholders: Placeholder[];
   iterations: DataIteration[];
 }
 
 export const PreviewPlayer = ({
   backgroundImage,
+  backgroundVideo,
   placeholders,
   iterations,
 }: PreviewPlayerProps) => {
@@ -22,12 +24,15 @@ export const PreviewPlayer = ({
   useEffect(() => {
     if (!isPlaying || iterations.length === 0) return;
 
+    const currentIteration = iterations[currentIndex];
+    const duration = currentIteration?.duration || 2000;
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % iterations.length);
-    }, 2000);
+    }, duration);
 
     return () => clearInterval(interval);
-  }, [isPlaying, iterations.length]);
+  }, [isPlaying, iterations, currentIndex]);
 
   const handlePlay = () => {
     if (iterations.length === 0) return;
@@ -56,6 +61,7 @@ export const PreviewPlayer = ({
 
       <TemplateCanvas
         backgroundImage={backgroundImage}
+        backgroundVideo={backgroundVideo}
         placeholders={placeholders}
         onPlaceholderAdd={() => {}}
         onPlaceholderUpdate={() => {}}
