@@ -56,10 +56,23 @@ export const DataManager = ({
   };
 
   const handleImageUpload = (iterationId: string, placeholderId: string, file: File) => {
+    console.log('Starting image upload...', { iterationId, placeholderId, fileName: file.name });
+    
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
-      updateIterationValue(iterationId, placeholderId, event.target?.result as string);
-      toast.success('Image uploaded');
+      const result = event.target?.result as string;
+      console.log('Image loaded, updating iteration...');
+      updateIterationValue(iterationId, placeholderId, result);
+      toast.success(`${file.name} uploaded successfully`);
+    };
+    reader.onerror = () => {
+      console.error('Error reading file');
+      toast.error('Failed to upload image');
     };
     reader.readAsDataURL(file);
   };
@@ -67,7 +80,14 @@ export const DataManager = ({
   return (
     <Card className="p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Data Iterations</h2>
+        <div>
+          <h2 className="text-xl font-semibold">Data Iterations</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {placeholders.length > 0 
+              ? `Fill in data for ${placeholders.length} placeholder${placeholders.length > 1 ? 's' : ''}`
+              : 'Add placeholders to the template first'}
+          </p>
+        </div>
         <Button onClick={addIteration} size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Add Iteration
@@ -109,26 +129,36 @@ export const DataManager = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-4">
                 {placeholders.map((placeholder) => (
-                  <div key={placeholder.id} className="space-y-1">
-                    <Label className="text-xs">{placeholder.name}</Label>
+                  <div key={placeholder.id} className="space-y-2">
+                    <Label className="text-sm font-medium">{placeholder.name} ({placeholder.type})</Label>
                     {placeholder.type === 'image' ? (
                       <div className="space-y-2">
                         {iteration.values[placeholder.id] && (
-                          <img
-                            src={iteration.values[placeholder.id] as string}
-                            alt={placeholder.name}
-                            className="w-full h-24 object-cover rounded border"
-                          />
+                          <div className="relative">
+                            <img
+                              src={iteration.values[placeholder.id] as string}
+                              alt={placeholder.name}
+                              className="w-full h-32 object-cover rounded-lg border-2 border-border"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-2 right-2"
+                              onClick={() => updateIterationValue(iteration.id, placeholder.id, '')}
+                            >
+                              Remove
+                            </Button>
+                          </div>
                         )}
                         <Label
                           htmlFor={`img-${iteration.id}-${placeholder.id}`}
-                          className="cursor-pointer"
+                          className="cursor-pointer block"
                         >
-                          <div className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
-                            <Upload className="h-4 w-4 mr-2" />
-                            Upload Image
+                          <div className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-input bg-background px-4 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground hover:border-primary transition-colors">
+                            <Upload className="h-5 w-5" />
+                            {iteration.values[placeholder.id] ? 'Change Image' : 'Upload Image'}
                           </div>
                         </Label>
                         <Input
@@ -138,7 +168,10 @@ export const DataManager = ({
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) handleImageUpload(iteration.id, placeholder.id, file);
+                            if (file) {
+                              console.log('Image file selected:', file.name);
+                              handleImageUpload(iteration.id, placeholder.id, file);
+                            }
                           }}
                         />
                       </div>
@@ -149,6 +182,7 @@ export const DataManager = ({
                           updateIterationValue(iteration.id, placeholder.id, e.target.value)
                         }
                         placeholder={`Enter ${placeholder.type}`}
+                        className="h-12"
                       />
                     )}
                   </div>
