@@ -5,7 +5,6 @@ import { TemplateCanvas } from './TemplateCanvas';
 import { DataIteration, Placeholder } from '@/types/template';
 import { Play, Pause, SkipBack, SkipForward, Maximize, Link2, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 interface PreviewPlayerProps {
   backgroundImage?: string;
@@ -79,13 +78,9 @@ export const PreviewPlayer = ({
     };
     
     try {
-      const { data, error } = await supabase
-        .from('shared_templates')
-        .insert([{ template_data: templateData as any }])
-        .select()
-        .single();
+      const { templatesApi } = await import('@/lib/api/templates');
       
-      if (error) throw error;
+      const data = await templatesApi.createTemplate(templateData);
       
       const shareUrl = `${window.location.origin}/preview?id=${data.id}`;
       
