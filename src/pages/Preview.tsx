@@ -5,7 +5,7 @@ import { DataIteration, Placeholder } from '@/types/template';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { templatesApi } from '@/lib/api/templates';
 
 const Preview = () => {
   const [searchParams] = useSearchParams();
@@ -26,13 +26,7 @@ const Preview = () => {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('shared_templates')
-          .select('template_data')
-          .eq('id', id)
-          .single();
-
-        if (error) throw error;
+        const data = await templatesApi.getTemplate(id);
 
         if (data?.template_data) {
           setTemplateData(data.template_data as any);
