@@ -2,6 +2,3 @@ project_id = "ohsywxoozzapiqyuyzaj"
 
 [functions.templates]
 verify_jwt = false
-
-[functions.render-video]
-verify_jwt = false
