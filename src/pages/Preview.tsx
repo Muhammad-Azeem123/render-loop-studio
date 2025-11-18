@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { PreviewPlayer } from '@/components/PreviewPlayer';
 import { DataIteration, Placeholder } from '@/types/template';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { templatesApi } from '@/lib/api/templates';
 
@@ -54,13 +54,26 @@ const Preview = () => {
     );
   }
 
+  const copyJsonToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(templateData, null, 2));
+      toast.success('Template JSON copied to clipboard');
+    } catch (error) {
+      toast.error('Failed to copy JSON');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
           <Button variant="outline" onClick={() => navigate('/')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Editor
+          </Button>
+          <Button variant="outline" onClick={copyJsonToClipboard}>
+            <Copy className="h-4 w-4 mr-2" />
+            Copy JSON
           </Button>
         </div>
       </header>
