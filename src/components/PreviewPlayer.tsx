@@ -3,7 +3,7 @@ import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { TemplateCanvas } from './TemplateCanvas';
 import { DataIteration, Placeholder } from '@/types/template';
-import { Play, Pause, SkipBack, SkipForward, Maximize, Link2, Check } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Maximize, Link2, Check, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PreviewPlayerProps {
@@ -94,6 +94,22 @@ export const PreviewPlayer = ({
     }
   };
 
+  const handleCopyJson = async () => {
+    const templateData = {
+      backgroundImage,
+      backgroundVideo,
+      placeholders,
+      iterations,
+    };
+    
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(templateData, null, 2));
+      toast.success('Template JSON copied to clipboard');
+    } catch (error) {
+      toast.error('Failed to copy JSON');
+    }
+  };
+
   const currentData = iterations[currentIndex]?.values;
 
   return (
@@ -101,6 +117,15 @@ export const PreviewPlayer = ({
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Preview</h2>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopyJson}
+            disabled={iterations.length === 0 || placeholders.length === 0}
+          >
+            <Copy className="h-4 w-4 mr-2" />
+            Copy JSON
+          </Button>
           <Button
             variant="outline"
             size="sm"
