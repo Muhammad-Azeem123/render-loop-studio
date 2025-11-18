@@ -95,15 +95,17 @@ export const PreviewPlayer = ({
   };
 
   const handleCopyJson = async () => {
-    const templateData = {
-      backgroundImage,
-      backgroundVideo,
-      placeholders,
-      iterations,
+    const jsonData = {
+      template_data: {
+        backgroundImage,
+        backgroundVideo,
+        placeholders,
+        iterations,
+      }
     };
     
     try {
-      await navigator.clipboard.writeText(JSON.stringify(templateData, null, 2));
+      await navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
       toast.success('Template JSON copied to clipboard');
     } catch (error) {
       toast.error('Failed to copy JSON');
